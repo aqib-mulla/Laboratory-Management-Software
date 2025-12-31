@@ -5806,7 +5806,7 @@ const generateGroupSection = (details) => `
             <div>
                <img src="data:image/jpeg;base64,${labImageBase64}" alt="Lab Technician Image" style="height: 50px; width: 50px;" />
                 <p><strong>TECHNICIAN</strong></p>
-                <p>(ASHOK.S.K.)</p>
+                <p>(JAYANESHWAR.S.K.)</p>
             </div>
         </div>
 <div class="page-break"></div>`;
@@ -6126,7 +6126,7 @@ const generateGroupSection = (details) => `
             <div>
                 <img src="data:image/jpeg;base64,${labImageBase64}" alt="Lab Technician Image" style="height: 50px; width: 50px;" />
                 <p><strong>TECHNICIAN</strong></p>
-                <p>(ASHOK.S.K.)</p>
+                <p>(JAYANESHWAR.S.K.)</p>
             </div>
         </div>
         </div>
@@ -6486,6 +6486,7 @@ const NHculturegeneratePDF = async (data, id) => {
 `;
     return htmlContent;
 };
+
 
 
 
