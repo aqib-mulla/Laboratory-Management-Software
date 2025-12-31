@@ -595,8 +595,8 @@ const generateBillHTML = async (data) => {
 
     const billDetailsHTML = `
         <div style="text-align: center;">
-            <span style="font-weight: bold; font-size: 30px;">KAZI LABORATORY</span> <br>
-            <span>B.M. NAGTHAN BUILDING, OPP KANNAT MASJID, J.M. ROAD, NEAR BADI KAMAN, VIJAYAPURA - 586101 </span><br>
+            <span style="font-weight: bold; font-size: 30px;">SIYA HI-TECH LABORATORY</span> <br>
+            <span>C/O Shweta Memorial Hospital, 400/.B.D. Bhadrannavar Building, College Road, Banahatti - 587311 </span><br>
             <h5 style="text-align:center">BILL RECEIPT</h5>
             <hr style="border-top: 1px solid #000; margin: 0;">
         </div>
@@ -672,6 +672,7 @@ const generateBillHTML = async (data) => {
 
 
 export default bill
+
 
 
 
