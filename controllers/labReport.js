@@ -5614,15 +5614,15 @@ const WHgeneratePDF = async (data, id) => {
     const doctorImageBuffer = fs.readFileSync(doctorImagePath);
     const doctorImageBase64 = doctorImageBuffer.toString('base64');
 
-    const labImagePath = './images/Mubarak.png';
+    const labImagePath = './images/SAI-SIGN.png';
     const labImageBuffer = fs.readFileSync(labImagePath);
     const labImageBase64 = labImageBuffer.toString('base64');
 
-    const headerImagePath = './images/BangaloreHeader.png';
+    const headerImagePath = './images/SIYA-HEADER.png';
     const headerImageBuffer = fs.readFileSync(headerImagePath);
     const headerImageBase64 = headerImageBuffer.toString('base64');
 
-    const footerImagePath = './images/BangaloreFooter.png'; 
+    const footerImagePath = './images/SAI-FOOTER.png'; 
     const footerImageBuffer = fs.readFileSync(footerImagePath);
     const footerImageBase64 = footerImageBuffer.toString('base64');
 
@@ -6486,6 +6486,7 @@ const NHculturegeneratePDF = async (data, id) => {
 `;
     return htmlContent;
 };
+
 
 
 
