@@ -1,0 +1,182 @@
+https://limewire.com/d/080407e9-fc2d-4ffe-a08b-a44d419d34a6#sS0S0NB6laOazejvoskjvmN9ZA2zgTk0y49F3cF_-EQ       
+ $route->get('schedule/(:segment)/(:segment)/(:segment)', 'OverAll::scheduleCollection/$1/$2/$3');
+
+public function scheduleCollection(string $schedule, string $start, string $end): \CodeIgniter\HTTP\Response
+{
+    $db = Database::connect();
+
+    // Get Bill Details with MedicineName
+    $billDetails = $db->table('tblPharmacyBill b')
+        ->select('d.MedicineName, d.BatchNo, d.ExpiryDate, d.Qty, d.Cost, d.GST')
+        ->join('tblPharmacyBillDetails d', 'b.BillYear=d.BillYear AND b.BillNo=d.BillNo', 'INNER')
+        ->where("`BillDate` BETWEEN '$start' AND '$end'", null, false)
+        ->get()
+        ->getResultObject();
+
+    if (empty($billDetails)) {
+        return $this->response->setBody("<script>alert('No Collections Found');window.close();</script>");
+    }
+
+    // Extract medicine names and batch numbers
+    $medicineNames = array_column($billDetails, 'MedicineName');
+    $batchNos = array_column($billDetails, 'BatchNo');
+
+    if (!empty($medicineNames) && !empty($batchNos)) {
+        // Fetch medicine purchase details in a single query
+        $medicinePurchase = $db->table('tblPurchaseOrderDetails p')
+            ->select('p.MedicineName, p.BatchNo, p.PurchaseAmt, m.Schedule')
+            ->join('tblMedicineMaster m', 'p.MedicineName = m.MedicineName', 'INNER') // Check schedule
+            ->whereIn('p.MedicineName', $medicineNames)
+            ->whereIn('p.BatchNo', $batchNos)
+            ->where('m.Schedule', $schedule) // Filter by provided schedule
+            ->get()
+            ->getResultObject();
+    } else {
+        $medicinePurchase = [];
+    }
+
+    // Prepare Data
+    $data = [
+        'medName'      => $medicinePurchase,
+        'billDetails'  => $billDetails,
+        'startDate'    => $start,
+        'endDate'      => $end,
+        'schedule'     => $schedule,
+        'collections'  => Service::GetCollection($start, $end),
+        'returns'      => Service::GetReturns($start, $end),
+        'report_type'  => 'overall'
+    ];
+
+    $view = view('reports/collections/schedule', $data);
+
+    if (!is_null($this->request->getGet('base'))) {
+        $this->response->setContentType('text/plain')->setBody(base64_encode($view));
+    } else {
+        $this->response->setContentType('application/pdf')
+            ->setBody($view)
+            ->setHeader('Content-Disposition', 'attachment;filename="Collections Report.pdf"');
+    }
+
+    return $this->response;
+}
+
+
+
+<?php
+
+use App\Views\Classes\Reports\Collections\OverallCollections;
+
+$type = isset($billType) ? 'as ' . $billType : '';
+
+$pdf = new OverallCollections();
+$pdf->AliasNbPages();
+$pdf->AddPage();
+
+$payTypes = array_unique(array_map(fn (object $val): string => $val->PayingType, $collections));
+sort($payTypes);
+
+$payTypeValues = [];
+foreach ($payTypes as $pay) {
+    $payTypeValues[$pay] = 0;
+}
+
+$pdf->SetFont('times', 'B', 12);
+
+function convertDate(string $date)
+{
+    return preg_replace('/(\d{4})-(\d{2})-(\d{2})/', '$3-$2-$1', $date);
+}
+
+if ($report_type === 'daily') {
+    $pdf->Cell(200, 10, "Collection Report of ". convertDate($date), 0, 1, 'C');
+} else {
+    $start= convertDate($startDate);
+    $end= convertDate($endDate);
+    $pdf->Cell(200, 10, "Collection Report from $start to $end", 0, 1, 'C');
+    $pdf->Cell(200, 10, "$schedule", 0, 1, 'C');
+}
+
+$pdf->Ln(3);
+$pdf->SetFont('times', 'B', 10);
+$pdf->Cell(195, 8, 'Total Bills Done', 1, 1);
+
+$pdf->Cell(15, 8, "Bill No", 1, 0);
+//$pdf->Cell(20, 8, "Bill Date", 1, 0);
+$pdf->Cell(50, 8, "Patient Name", 1, 0);
+$pdf->Cell(20, 8, 'Contact No', 1, 0);
+$pdf->Cell(20, 8, "Total", 1, 0);
+$pdf->Cell(20, 8, "Discount", 1, 0);
+$pdf->Cell(20, 8, "Sub Total", 1, 0);
+$pdf->Cell(30, 8, 'Paying Type', 1, 0);
+$pdf->Cell(20, 8, 'UPI ID', 1, 1);
+
+$pdf->SetFont('times', '', 8);
+
+$collected = 0;
+
+foreach ($collections as $detail) {
+    $collected += (float) $detail->PaidAmount;
+    $pdf->Cell(15, 8, $detail->BillNo, 1, 0);
+    $pdf->Cell(50, 8, $detail->PtName, 1, 0);
+    $pdf->Cell(20, 8, $detail->ContactNo, 1, 0);
+    $pdf->Cell(20, 8, $detail->TotalAmt, 1, 0);
+    $pdf->Cell(20, 8, $detail->Discount, 1, 0);
+    $pdf->Cell(20, 8, $detail->SubTotal, 1, 0);
+    $pdf->Cell(30, 8, $detail->PayingType, 1, 0);
+    $pdf->Cell(20, 8, $detail->upi_id, 1, 1);
+    $payTypeValues[$detail->PayingType] += floatval($detail->SubTotal);
+}
+$pdf->SetFont('times', 'B', 10);
+$pdf->cell(85, 8, 'Total No of Bills Done : ' . count($collections), 1, 0, 'L');
+$pdf->cell(110, 8, "Total Amount Collected is Rs." . number_format($collected, 2), 1, 1, 'L');
+
+$pdf->Ln(10);
+$pdf->SetFont('times', 'B', 10);
+$pdf->Cell(128, 8, 'Total Bills Returned', 1, 1);
+
+$pdf->Cell(15, 8, "BillNo", 1, 0);
+$pdf->Cell(50, 8, "Patient Name", 1, 0);
+$pdf->Cell(20, 8, "Total", 1, 0);
+$pdf->Cell(23, 8, "Paying Type", 1, 0);
+$pdf->Cell(20, 8, 'Coll', 1, 1);
+
+$pdf->SetFont('times', '', 8);
+
+$returnedBillsTotal = 0;
+
+foreach ($returns as $i => $return) {
+    $returnedBillsTotal += (float) $return->total_amt;
+    $pdf->Cell(15, 8, $return->bill_no, 1, 0);
+    $pdf->Cell(50, 8, $return->name, 1, 0);
+    $pdf->Cell(20, 8, $return->total_amt, 1, 0);
+    $pdf->Cell(23, 8, $return->pay_type, 1, 0);
+    $pdf->Cell(20, 8, $returnedBillsTotal, 1, 1);
+}
+$pdf->SetFont('times', 'B', 10);
+$pdf->cell(65, 8, 'Total No of Bills Returned : ' . count($returns), 1, 0, 'L');
+$pdf->cell(63, 8, "Total Amount Returned is Rs." . number_format($returnedBillsTotal, 2), 1, 1, 'L');
+
+$pdf->Ln(5);
+
+$pdf->Cell(190, 6, 'Total Amount Collected Rs.' . $collected, 1, 1);
+foreach ($payTypes as $pay) {
+    $pdf->Cell(195, 7, 'Total Amount Collected as ' . $pay . ' is Rs.' . $payTypeValues[$pay], 1, 1);
+}
+$pdf->Cell(190, 6, 'Total Amount Returned Rs.' . ($returnedBillsTotal), 1, 1);
+$pdf->Cell(190, 6, 'Total Amount Balance Rs.' . ($collected - ($returnedBillsTotal)), 1, 1);
+
+// $totalProfit=0;
+// foreach ($billDetails as $key=>$value ){
+//     // GST Amount = Original Cost – [Original Cost x {100/(100+GST%)}]
+//     $gst_amount = $value->Cost - ($value->Cost * (100 / (100 + $value->GST)));
+
+//     $without_gst = $value->Cost - $gst_amount;
+   
+//     $remPurchaseAmount=$without_gst- $medName[$key][0]->PurchaseAmt;
+//     $multiplyQty=$value->Qty*$remPurchaseAmount;
+//     $totalProfit +=$multiplyQty;
+// }
+// $pdf->Cell(190, 6, 'Total Profit Amount is Rs.' . sprintf('%0.02f',$totalProfit), 1, 1);
+
+$pdf->Output('I', 'OP Collection Report.pdf');
+
