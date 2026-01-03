@@ -5801,12 +5801,12 @@ const generateGroupSection = (details) => `
                 <p></p>
             </div>
              <div class="qr-code">
-                 <img class="image" src="${qrCodeData}" alt="QR Code">
+                 
             </div>
             <div>
                <img src="data:image/jpeg;base64,${labImageBase64}" alt="Lab Technician Image" style="height: 50px; width: 50px;" />
                 <p><strong>TECHNICIAN</strong></p>
-                <p>(JAYANESHWAR.S.K.)</p>
+                <p>(JNYANESHWAR.S.K.)</p>
             </div>
         </div>
 <div class="page-break"></div>`;
@@ -6121,12 +6121,12 @@ const generateGroupSection = (details) => `
                 <p></p>
             </div>
              <div class="qr-code">
-                 <img class="image" src="${qrCodeData}" alt="QR Code">
+                 
             </div>
             <div>
                 <img src="data:image/jpeg;base64,${labImageBase64}" alt="Lab Technician Image" style="height: 50px; width: 50px;" />
                 <p><strong>TECHNICIAN</strong></p>
-                <p>(JAYANESHWAR.S.K.)</p>
+                <p>(JNYANESHWAR.S.K.)</p>
             </div>
         </div>
         </div>
@@ -6486,6 +6486,7 @@ const NHculturegeneratePDF = async (data, id) => {
 `;
     return htmlContent;
 };
+
 
 
 
