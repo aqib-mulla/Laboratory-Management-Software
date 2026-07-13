@@ -41,7 +41,8 @@ export const bill = async (req, res) => {
 
             const formattedBills = billsWithDetails.map((bill) => ({
                 objbillId: bill._id,
-                pName: bill.refId.pName,
+                // pName: bill.refId.pName,
+                pName: bill.refId?.pName || "",
                 pSal: bill.refId.pSalutation,
                 pNum: bill.refId.pNum,
                 drName: bill.doctorName.drName,
