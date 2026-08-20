@@ -8,8 +8,8 @@ import  helmet from 'helmet'
 import morgan from 'morgan';
 import path from "path";
 import { fileURLToPath } from 'url';
-import register from "./controllers/auth.js"
-import tests from "./controllers/tests.js"
+import register from "./controllers/auth.js";
+import tests from "./controllers/tests.js";
 import createdoctor from './controllers/createdoctor.js';
 import { getRef , updateRef, getReferrals} from './controllers/createdoctor.js';
 import { getdoctor } from './controllers/createdoctor.js';
